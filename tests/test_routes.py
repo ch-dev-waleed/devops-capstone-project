@@ -138,3 +138,65 @@ class TestAccountService(TestCase):
         """It should not Read an Account that is not found"""
         resp = self.client.get(f"{BASE_URL}/0")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+def test_get_all_accounts(self):
+        """It should List all Accounts"""
+        accounts = self._create_accounts(3)
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), len(accounts))
+
+    def test_get_all_accounts_empty(self):
+        """It should List all Accounts even if there are none"""
+        response = self.client.get(BASE_URL)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.get_json()
+        self.assertEqual(len(data), 0)
+
+    def test_update_account(self):
+        """It should Update an existing Account"""
+        account = self._create_accounts(1)[0]
+
+        updated_data = {
+            "name": "Updated Name",
+            "email": "updated_email@example.com",
+            "address": "Updated Address",
+            "phone_number": "555-555-5555",
+            "date_joined": "2022-01-01",
+        }
+
+        response = self.client.put(
+            f"{BASE_URL}/{account.id}",
+            json=updated_data,
+            content_type="application/json"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        # Check if the account has been updated
+        updated_account = response.get_json()
+        self.assertEqual(updated_account["name"], updated_data["name"])
+        self.assertEqual(updated_account["email"], updated_data["email"])
+        self.assertEqual(updated_account["address"], updated_data["address"])
+        self.assertEqual(updated_account["phone_number"], updated_data["phone_number"])
+        self.assertEqual(updated_account["date_joined"], updated_data["date_joined"])
+
+    def test_update_account_not_found(self):
+        """It should not Update an Account that is not found"""
+        response = self.client.put(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_account(self):
+        """It should Delete an existing Account"""
+        account = self._create_accounts(1)[0]
+        response = self.client.delete(f"{BASE_URL}/{account.id}")
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+        # Check if the account has been deleted
+        get_response = self.client.get(f"{BASE_URL}/{account.id}")
+        self.assertEqual(get_response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_delete_account_not_found(self):
+        """It should not Delete an Account that is not found"""
+        response = self.client.delete(f"{BASE_URL}/0")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
